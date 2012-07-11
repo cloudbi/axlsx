@@ -108,6 +108,11 @@ class TestWorksheet < Test::Unit::TestCase
     assert_equal @ws.dimension, "A1:C2"
   end
 
+  def test_dimension_with_empty_row
+    @ws.add_row
+    assert_equal "A1:AA200", @ws.dimension
+  end
+
   def test_referencing
     @ws.add_row [1, 2, 3]
     @ws.add_row [4, 5, 6]
@@ -201,8 +206,8 @@ class TestWorksheet < Test::Unit::TestCase
   end
 
   def test_fit_to_page_assignation_does_nothing
-    @ws.fit_to_page = false
-    assert_equal(@ws.fit_to_page, false)
+    @ws.fit_to_page = true
+    assert_equal(@ws.fit_to_page?, false)
   end
 
   def test_to_xml_string_selected
@@ -308,11 +313,8 @@ class TestWorksheet < Test::Unit::TestCase
   def test_to_xml_string_with_illegal_chars
     nasties =  "\v\u2028\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u001f"
     @ws.add_row [nasties]
-    assert_equal(nasties, @ws.rows.last.cells.last.value)
-    schema = Nokogiri::XML::Schema(File.open(Axlsx::SML_XSD))
-    doc = Nokogiri::XML(@ws.to_xml_string)
-
-    assert(schema.validate(doc).map { |e| puts e.message; e }.empty?)
+    assert_equal(0, @ws.rows.last.cells.last.value.index("\v"))
+    assert_equal(nil,@ws.to_xml_string.index("\v"))
   end
   # Make sure the XML for all optional elements (like pageMargins, autoFilter, ...)
   # is generated in correct order.

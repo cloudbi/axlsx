@@ -1,13 +1,37 @@
 # encoding: UTF-8
 module Axlsx
+
   # A Chart is the superclass for specific charts
   # @note Worksheet#add_chart is the recommended way to create charts for your worksheets.
   # @see README for examples
   class Chart
 
+    # Creates a new chart object
+    # @param [GraphicalFrame] frame The frame that holds this chart.
+    # @option options [Cell, String] title
+    # @option options [Boolean] show_legend
+    # @option options [Array|String|Cell] start_at The X, Y coordinates defining the top left corner of the chart.
+    # @option options [Array|String|Cell] end_at The X, Y coordinates defining the bottom right corner of the chart.
+    def initialize(frame, options={})
+      @style = 18  
+      @view_3D = nil
+      @graphic_frame=frame
+      @graphic_frame.anchor.drawing.worksheet.workbook.charts << self
+      @series = SimpleTypedList.new Series
+      @show_legend = true
+      @series_type = Series
+      @title = Title.new
+      options.each do |o|
+        self.send("#{o[0]}=", o[1]) if self.respond_to? "#{o[0]}="
+      end
+      start_at(*options[:start_at]) if options[:start_at]
+      end_at(*options[:end_at]) if options[:end_at]
+      yield self if block_given?
+    end
 
     # The 3D view properties for the chart
-    attr_reader :view3D
+    attr_reader :view_3D
+    alias :view3D :view_3D
 
     # A reference to the graphic frame that owns this chart
     # @return [GraphicFrame]
@@ -37,29 +61,6 @@ module Axlsx
     # @return [Boolean]
     attr_reader :show_legend
 
-    # Creates a new chart object
-    # @param [GraphicalFrame] frame The frame that holds this chart.
-    # @option options [Cell, String] title
-    # @option options [Boolean] show_legend
-    # @option options [Array|String|Cell] start_at The X, Y coordinates defining the top left corner of the chart.
-    # @option options [Array|String|Cell] end_at The X, Y coordinates defining the bottom right corner of the chart.
-    def initialize(frame, options={})
-      @style = 18  
-      @view3D = nil
-      @graphic_frame=frame
-      @graphic_frame.anchor.drawing.worksheet.workbook.charts << self
-      @series = SimpleTypedList.new Series
-      @show_legend = true
-      @series_type = Series
-      @title = Title.new
-      options.each do |o|
-        self.send("#{o[0]}=", o[1]) if self.respond_to? "#{o[0]}="
-      end
-      start_at(*options[:start_at]) if options[:start_at]
-      end_at(*options[:end_at]) if options[:end_at]
-      yield self if block_given?
-    end
-
     # The index of this chart in the workbooks charts collection
     # @return [Integer]
     def index
@@ -88,7 +89,6 @@ module Axlsx
     # @param [Boolean] v
     # @return [Boolean]
     def show_legend=(v) Axlsx::validate_boolean(v); @show_legend = v; end
-
 
     # The style for the chart.
     # see ECMA Part 1 §21.2.2.196
@@ -127,7 +127,7 @@ module Axlsx
       @title.to_xml_string str
       # do these need the c: namespace as well???
       str << '<c:autoTitleDeleted val="' << (@title == nil).to_s << '"/>'
-      @view3D.to_xml_string(str) if @view3D
+      @view_3D.to_xml_string(str) if @view_3D
       str << '<c:floor><c:thickness val="0"/></c:floor>'
       str << '<c:sideWall><c:thickness val="0"/></c:sideWall>'
       str << '<c:backWall><c:thickness val="0"/></c:backWall>'
@@ -146,6 +146,11 @@ module Axlsx
       str << '<c:dispBlanksAs val="zero"/>'
       str << '<c:showDLblsOverMax val="1"/>'
       str << '</c:chart>'
+      str << '<c:printSettings>'
+      str << '<c:headerFooter/>'
+      str << '<c:pageMargins b="1.0" l="0.75" r="0.75" t="1.0" header="0.5" footer="0.5"/>'
+      str << '<c:pageSetup/>'
+      str << '</c:printSettings>'
       str << '</c:chartSpace>'
     end
 
@@ -188,7 +193,9 @@ module Axlsx
       [x, y]
     end
 
-    def view3D=(v) DataTypeValidator.validate "#{self.class}.view3D", View3D, v; @view3D = v; end
+    def view_3D=(v) DataTypeValidator.validate "#{self.class}.view_3D", View3D, v; @view_3D = v; end
+    alias :view3D= :view_3D=
 
   end
+
 end

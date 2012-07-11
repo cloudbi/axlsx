@@ -1,5 +1,6 @@
 # encoding: UTF-8
 module Axlsx
+
   # App represents the app.xml document. The attributes for this object are primarily managed by the application the end user uses to edit the document. None of the attributes are required to serialize a valid xlsx object.
   # @see shared-documentPropertiesExtended.xsd
   # @note Support is not implemented for the following complex types:
@@ -9,6 +10,35 @@ module Axlsx
   #    HLinks (VectorVariant),
   #    DigSig (DigSigBlob)
   class App
+
+    # Creates an App object
+    # @option options [String] template
+    # @option options [String] manager
+    # @option options [Integer] pages
+    # @option options [Integer] words
+    # @option options [Integer] characters
+    # @option options [String] presentation_format
+    # @option options [Integer] lines
+    # @option options [Integer] paragraphs
+    # @option options [Integer] slides
+    # @option options [Integer] notes
+    # @option options [Integer] total_time
+    # @option options [Integer] hidden_slides
+    # @option options [Integer] m_m_clips
+    # @option options [Boolean] scale_crop
+    # @option options [Boolean] links_up_to_date
+    # @option options [Integer] characters_with_spaces
+    # @option options [Boolean] share_doc
+    # @option options [String] hyperlink_base
+    # @option options [String] hyperlinks_changed
+    # @option options [String] application
+    # @option options [String] app_version
+    # @option options [Integer] doc_security
+    def initialize(options={})
+      options.each do |name, value|
+        self.send("#{name}=", value) if self.respond_to? "#{name}="
+      end
+    end
 
     # @return [String] The name of the document template.
     attr_reader :template
@@ -89,7 +119,7 @@ module Axlsx
     # @return [Boolean] Indicates that the hyper links in the document have been changed.
     attr_reader :hyperlinks_changed
     alias :HyperlinksChanged :hyperlinks_changed
-    
+
     # @return [String] The name of the application
     attr_reader :application
     alias :Applicatoin :application
@@ -102,44 +132,17 @@ module Axlsx
     attr_reader :doc_security
     alias :DocSecurity :doc_security
 
-    # Creates an App object
-    # @option options [String] template
-    # @option options [String] manager
-    # @option options [Integer] pages
-    # @option options [Integer] words
-    # @option options [Integer] characters
-    # @option options [String] presentation_format
-    # @option options [Integer] lines
-    # @option options [Integer] paragraphs
-    # @option options [Integer] slides
-    # @option options [Integer] notes
-    # @option options [Integer] total_time
-    # @option options [Integer] hidden_slides
-    # @option options [Integer] m_m_clips
-    # @option options [Boolean] scale_crop
-    # @option options [Boolean] links_up_to_date
-    # @option options [Integer] characters_with_spaces
-    # @option options [Boolean] share_doc
-    # @option options [String] hyperlink_base
-    # @option options [String] hyperlinks_changed
-    # @option options [String] application
-    # @option options [String] app_version
-    # @option options [Integer] doc_security
-    def initialize(options={})
-      options.each do |o|
-        self.send("#{o[0]}=", o[1]) if self.respond_to? "#{o[0]}="
-      end
-    end
-
     # Sets the template property of your app.xml file
     def template=(v) Axlsx::validate_string v; @template = v; end
+    alias :Template :template
 
     # Sets the manager property of your app.xml file
     def manager=(v) Axlsx::validate_string v; @manager = v; end
+    alias :Manager :manager
 
     # Sets the company property of your app.xml file
     def company=(v) Axlsx::validate_string v; @company = v; end
-
+    alias :Company :company
     # Sets the pages property of your app.xml file
     def pages=(v) Axlsx::validate_int v; @pages = v; end
 
@@ -214,7 +217,7 @@ module Axlsx
     # Sets the doc_security property of your app.xml file
     def doc_security=(v) Axlsx::validate_int v; @doc_security = v; end
     alias :DocSecurity= :doc_security=
-     
+
     # Serialize the app.xml document
     # @return [String]
     def to_xml_string(str = '')
@@ -225,4 +228,5 @@ module Axlsx
     end
 
   end
+
 end

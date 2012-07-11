@@ -1,7 +1,39 @@
 # encoding: UTF-8
 module Axlsx
- # the access class defines common properties and values for a chart axis.
+
+  # the access class defines common properties and values for a chart axis.
   class Axis
+
+    # Creates an Axis object
+    # @param [Integer] ax_id the id of this axis
+    # @param [Integer] cross_ax the id of the perpendicular axis
+    # @option options [Symbol] ax_pos
+    # @option options [Symbol] crosses
+    # @option options [Symbol] tick_lbl_pos
+    # @raise [ArgumentError] If axi_id or cross_ax are not unsigned integers
+    def initialize(ax_id, cross_ax, options={})
+      Axlsx::validate_unsigned_int(ax_id)
+      Axlsx::validate_unsigned_int(cross_ax)
+      @ax_id = ax_id
+      @cross_ax = cross_ax
+      @format_code = "General"
+      @delete = @label_rotation = 0
+      @scaling = Scaling.new(:orientation=>:minMax)
+      @title = @color = nil
+      self.ax_pos = :b
+      self.tick_lbl_pos = :nextTo
+      self.format_code = "General"
+      self.crosses = :autoZero
+      self.gridlines = true
+      options.each do |name, value|
+        self.send("#{name}=", value) if self.respond_to? "#{name}="
+      end
+    end
+
+    # the fill color to use in the axis shape properties. This should be a 6 character long hex string
+    # e.g. FF0000 for red
+    # @return [String]
+    attr_reader :color
 
     # the id of the axis.
     # @return [Integer]
@@ -55,30 +87,12 @@ module Axlsx
     # the title for the axis. This can be a cell or a fixed string.
     attr_reader :title
 
-    # Creates an Axis object
-    # @param [Integer] ax_id the id of this axis
-    # @param [Integer] cross_ax the id of the perpendicular axis
-    # @option options [Symbol] ax_pos
-    # @option options [Symbol] crosses
-    # @option options [Symbol] tick_lbl_pos
-    # @raise [ArgumentError] If axi_id or cross_ax are not unsigned integers
-    def initialize(ax_id, cross_ax, options={})
-      Axlsx::validate_unsigned_int(ax_id)
-      Axlsx::validate_unsigned_int(cross_ax)
-      @ax_id = ax_id
-      @cross_ax = cross_ax
-      @format_code = "General"
-      @delete = @label_rotation = 0
-      @scaling = Scaling.new(:orientation=>:minMax)
-      @title = nil
-      self.ax_pos = :b
-      self.tick_lbl_pos = :nextTo
-      self.format_code = "General"
-      self.crosses = :autoZero
-      self.gridlines = true
-      options.each do |o|
-        self.send("#{o[0]}=", o[1]) if self.respond_to? "#{o[0]}="
-      end
+    # The color for this axis. This value is used when rendering the axis line in the chart. 
+    # colors should be in 6 character rbg format
+    # @return [String] the rbg color assinged.
+    # @see color
+    def color=(color_rgb)
+      @color = color_rgb
     end
 
     # The position of the axis
@@ -99,7 +113,6 @@ module Axlsx
     # default true
     def gridlines=(v) Axlsx::validate_boolean(v); @gridlines = v; end
 
-
     # Specify if axis should be removed from the chart
     # default false
     def delete=(v) Axlsx::validate_boolean(v); @delete = v; end
@@ -117,7 +130,6 @@ module Axlsx
       @label_rotation = adjusted
     end
 
-    
     # The title object for the chart.
     # @param [String, Cell] v
     # @return [Title]
@@ -140,6 +152,7 @@ module Axlsx
       str << '<c:delete val="'<< @delete.to_s << '"/>'
       str << '<c:axPos val="' << @ax_pos.to_s << '"/>'
       str << '<c:majorGridlines>'
+      # TODO shape properties need to be extracted into a class
       if gridlines == false
         str << '<c:spPr>'
         str << '<a:ln>'
@@ -153,6 +166,13 @@ module Axlsx
       str << '<c:majorTickMark val="none"/>'
       str << '<c:minorTickMark val="none"/>'
       str << '<c:tickLblPos val="' << @tick_lbl_pos.to_s << '"/>'
+      # TODO - this is also being used for series colors
+      # time to extract this into a class spPr - Shape Properties
+      if @color
+        str << '<c:spPr><a:ln><a:solidFill>'
+        str << '<a:srgbClr val="' << @color << '"/>'
+        str << '</a:solidFill></a:ln></c:spPr>'
+      end
       # some potential value in implementing this in full. Very detailed!
       str << '<c:txPr><a:bodyPr rot="' << @label_rotation.to_s << '"/><a:lstStyle/><a:p><a:pPr><a:defRPr/></a:pPr><a:endParaRPr/></a:p></c:txPr>'
       str << '<c:crossAx val="' << @cross_ax.to_s << '"/>'
@@ -160,4 +180,5 @@ module Axlsx
     end
 
   end
+
 end
