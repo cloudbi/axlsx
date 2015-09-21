@@ -100,7 +100,7 @@ module Axlsx
     #   File.open('example_streamed.xlsx', 'w') { |f| f.write(s.read) }
     def serialize(output, confirm_valid=false)
       return false unless !confirm_valid || self.validate.empty?
-      Zip::ZipOutputStream.open(output) do |zip|
+      Zip::File.open.open(output) do |zip|
         write_parts(zip)
       end
       true
@@ -112,7 +112,7 @@ module Axlsx
     # @return [StringIO|Boolean] False if confirm_valid and validation errors exist. rewound string IO if not.
     def to_stream(confirm_valid=false)
       return false unless !confirm_valid || self.validate.empty?
-      zip = write_parts(Zip::ZipOutputStream.new("streamed", true))
+      zip = write_parts(Zip::File.open.new("streamed", true))
       stream = zip.close_buffer
       stream.rewind
       stream
